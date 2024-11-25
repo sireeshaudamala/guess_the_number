@@ -1,65 +1,77 @@
-// Assume rangeStart and rangeEnd are always greater than 0.
-// rangeStart is always less than rangeEnd.
-function askForPlay() {
+function doesUserWantToPlayAgain() {
   return confirm("do you want to play again");
 }
 
-function suggestion(rangeStart, rangeEnd, maxAttempts, guessNumber, number) {
-  if (guessNumber < number) {
-    console.log(guessNumber + " Too low! Try a higher number.");
-    return startGame(rangeStart, rangeEnd, maxAttempts - 1, number);
-  }
-
-  console.log(guessNumber + " Too high! Try a smaller number.");
-  return startGame(rangeStart, rangeEnd, maxAttempts - 1, number);
+function isValidInput(rangeStart, rangeEnd, userInput) {
+  return (rangeStart <= userInput && userInput <= rangeEnd);
 }
 
-function startGame(rangeStart, rangeEnd, maxAttempts, number) {
-  if (maxAttempts === 0) {
-    console.log("Oh no! You've used all your attempts. Better luck next time!");
-    return "\n\n------------------***-----------------------";
+function getSuggestion(userInput, computerChoice) {
+  if (userInput < computerChoice) {
+    return userInput + " Too low! Try a higher number.";
   }
 
-  console.log("Take a guess!" + ("Remaining attempts: " + maxAttempts));
-  const guessNumber = +prompt("enter number :");
-
-  if (guessNumber === number) {
-    console.log("Bravo! You've nailed it. The number was " + number);
-    return "\n\n------------------***-----------------------";
-  }
-
-  return isValidInput(rangeStart, rangeEnd, maxAttempts, guessNumber, number);
+  return userInput + " Too high! Try a smaller number.";
 }
 
-function isValidInput(rangeStart, rangeEnd, maxAttempts, guessNumber, number) {
-  if (rangeStart <= guessNumber && guessNumber <= rangeEnd) {
-    return suggestion(rangeStart, rangeEnd, maxAttempts, guessNumber, number);
-  }
-
-  console.log("Invalid input! Please enter a number ");
-  return startGame(rangeStart, rangeEnd, maxAttempts, number);
+function getRemainingChances(maxAttempts) {
+  return "Take a guess!" + ("Remaining attempts: " + maxAttempts);
 }
 
-function range(rangeStart, rangeEnd, maxAttempts) {
+function getComputerChoice(rangeStart, rangeEnd) {
   const range = rangeEnd - rangeStart;
-  const number = Math.round(Math.random() * range) + rangeStart;
 
-  return startGame(rangeStart, rangeEnd, maxAttempts, number);
+  return Math.round(Math.random() * range) + rangeStart;
 }
 
-function greetings(rangeStart, rangeEnd, maxAttempts) {
-  console.log("----Welcome to Guess the Number!----");
-  console.log("The secret number is between " + rangeStart + " and "
-    + rangeEnd + " You have " + maxAttempts + " attempts to find it");
-  console.log(range(rangeStart, rangeEnd, maxAttempts));
-
-  if (askForPlay()) {
-    console.clear();
-    return greetings(rangeStart, rangeEnd, maxAttempts);
+function getUserChoice(rangeStart, rangeEnd) {
+  const userInput = +prompt("enter number :");
+  if (!isValidInput(rangeStart, rangeEnd, userInput)) {
+    console.log("Invalid input! Please enter a number ");
+    return getUserChoice(rangeStart, rangeEnd);
   }
 
-  return "Goodbye!";
+  return userInput;
 }
 
-console.clear();
-console.log(greetings(10, 13, 2));
+function givenInstructions(rangeStart, rangeEnd, maxAttempts) {
+  return "The secret number is between " + rangeStart + " and "
+    + rangeEnd + " You have " + maxAttempts + " attempts to find it.";
+}
+
+function welcomeMessage() {
+  return "----Welcome to Guess the Number!----";
+}
+
+function showGameResult(rangeStart, rangeEnd, maxAttempts, computerChoice) {
+  if (maxAttempts === 0) {
+    return "Oh no! You've used all your attempts. Better luck next time!";
+  }
+
+  console.log(getRemainingChances(maxAttempts));
+  const userInput = getUserChoice(rangeStart, rangeEnd);
+
+  if (userInput === computerChoice) {
+    return "Bravo! You've nailed it. The number was " + userInput;
+  }
+  console.log(getSuggestion(userInput, computerChoice));
+
+  return showGameResult(rangeStart, rangeEnd, maxAttempts - 1, computerChoice);
+}
+
+
+function playGame(rangeStart, rangeEnd, maxAttempts) {
+  console.log(welcomeMessage());
+  console.log(givenInstructions(rangeStart, rangeEnd, maxAttempts));
+
+  const computerChoice = getComputerChoice(rangeStart, rangeEnd);
+  console.log(showGameResult(rangeStart, rangeEnd, maxAttempts, computerChoice));
+
+  if (!doesUserWantToPlayAgain()) {
+    return "thanks for playing";
+  }
+
+  return playGame(rangeStart, rangeEnd, maxAttempts);
+}
+
+console.log(playGame(10, 12, 6));
